@@ -2,7 +2,7 @@
   "development": {
     "username": "root",
     "password": null,
-    "database": "Db_resto",
+    "database": "db_resto",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
