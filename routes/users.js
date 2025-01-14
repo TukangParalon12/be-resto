@@ -4,10 +4,21 @@ const models = require("../models/index");
 const users = require("../models/users");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const jwtverify = require("jsonwebtoken");
+const jwtverify = require("../middleware/authMiddleware");
+const rateLimit = require("express-rate-limit");
+const { where } = require("sequelize");
+
+// Function for login rate limiting
+const loginLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: {
+    error: "Too many login attempts. Please try again after 1 minute.",
+  },
+});
 
 /* GET users listing. */
-router.post("/make_data", async (req, res, next) => {
+router.post("/register", async (req, res, next) => {
   console.log(req.body);
   try {
     const { role, name, password } = req.body;
@@ -42,6 +53,18 @@ router.post("/login", async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Login failed" });
+  }
+});
+router.get("/show_data", jwtverify, async (req, res) => {
+  try {
+    const data = await models.users.findOne({
+      where: { id: req.userId },
+      attributes: ["id", "name", "role"],
+    });
+    return res.status(200).json({ data });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ responseCode: 400, message: error.message });
   }
 });
 
