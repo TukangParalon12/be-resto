@@ -11,7 +11,7 @@ const { where } = require("sequelize");
 // Function for login rate limiting
 const loginLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 5,
+  max: 2,
   message: {
     error: "Too many login attempts. Please try again after 1 minute.",
   },
