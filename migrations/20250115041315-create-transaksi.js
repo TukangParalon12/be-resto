@@ -1,43 +1,50 @@
-'use strict';
+"use strict";
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('transaksis', {
+    await queryInterface.createTable("transaksis", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       no_meja: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       id_kasir: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: "users", // Nama tabel referensi
+          key: "id", // Kolom di tabel referensi
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       id_payment_method: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       total_pembelian: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
       },
       nominal_pembeyaran: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
       },
       nominal_pengembalian: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('transaksis');
-  }
+    await queryInterface.dropTable("transaksis");
+  },
 };

@@ -11,6 +11,7 @@ var productRouter = require("./routes/product");
 var transaksiRouter = require("./routes/transaksi");
 
 var app = express();
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(
   cors({
     origin: "*",
@@ -33,7 +34,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/product", productRouter);
-app.use("/transakai", transaksiRouter);
+app.use("/transaksi", transaksiRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
