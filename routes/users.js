@@ -48,7 +48,10 @@ router.post("/login", async (req, res) => {
     if (!passwordMatch) {
       return res.status(404).json({ error: "password failed" });
     }
-    const token = jwt.sign({ userId: user.id, role: user.role }, "lucky");
+    const token = jwt.sign({ userId: user.id, role: user.role }, "lucky", {
+      expiresIn: "1d",
+    });
+    console.log(token);
     res.status(200).json({ token, role: user.role });
   } catch (error) {
     console.log(error);
@@ -59,6 +62,18 @@ router.get("/show_data", jwtverify, async (req, res) => {
   try {
     const data = await models.users.findOne({
       where: { id: req.userId },
+      attributes: ["id", "name", "role"],
+    });
+    return res.status(200).json({ data });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ responseCode: 400, message: error.message });
+  }
+});
+router.get("/show_data_karyawan", async (req, res) => {
+  try {
+    const data = await models.users.findAll({
+      where: { role: ["kasir", "gudang"] },
       attributes: ["id", "name", "role"],
     });
     return res.status(200).json({ data });
