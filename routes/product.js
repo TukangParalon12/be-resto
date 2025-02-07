@@ -4,6 +4,7 @@ const path = require("path");
 const fs = require("fs");
 const router = express.Router();
 const model = require("../models");
+const { fn, col, Op } = require("sequelize");
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "./uploads/");
@@ -50,6 +51,53 @@ router.get("/show_categories", async (req, res) => {
     res.status(500).json({
       responseCode: 500,
       message: "Error fetching categories",
+      error: error.message,
+    });
+  }
+});
+router.get("/popular", async (req, res) => {
+  try {
+    const popularProducts = await model.detail_transaksi.findAll({
+      attributes: ["product", [fn("SUM", col("qty")), "qty"]],
+      group: ["product"],
+      order: [[fn("SUM", col("qty")), "DESC"]],
+      limit: 3,
+    });
+    const productNames = popularProducts.map((item) => item.product);
+
+    const productDetails = await model.product.findAll({
+      where: {
+        title: {
+          [Op.in]: productNames, // Cari produk berdasarkan nama yang populer
+        },
+      },
+      attributes: ["id", "title", "price", "img_product"],
+    });
+
+    // Gabungkan data total pembelian dengan detail produk
+    const result = popularProducts.map((item) => {
+      const productInfo = productDetails.find((p) => p.title === item.product);
+      return {
+        id: productInfo?.id || null,
+        title: item.product,
+        price: productInfo?.price || null,
+        img_product: productInfo?.img_product
+          ? "uploads/" + productInfo.img_product
+          : null,
+        qty: item.qty,
+      };
+    });
+
+    res.status(200).json({
+      responseCode: 200,
+      message: "Popular products retrieved successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      responseCode: 500,
+      message: "Error retrieving popular products",
       error: error.message,
     });
   }
@@ -163,5 +211,31 @@ router.put(
     }
   }
 );
+router.put("/update_product_discount/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { price, stock, discount, category, title } = req.body;
+    const img_product = req.file ? req.file.filename : null;
+    const product = await model.product.findByPk(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    product.price = price || product.price;
+    product.title = title || product.title;
+    product.category = category || product.category;
+    product.stock = stock || product.stock;
+    product.discount = discount || product.discount;
+    await product.save();
+    res.json({
+      message: "Product updated successfully",
+      product,
+    });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Error updating product", error: error.message });
+  }
+});
 
 module.exports = router;
